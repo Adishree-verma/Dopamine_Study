@@ -1,61 +1,32 @@
 # 🧠 Dopamine Study
 
-An interactive educational project that explores the science of dopamine and its role in human cognition, motivation, learning, habits, and decision-making. The goal of this project is to present complex neuroscience and psychology concepts in a simple, engaging, and accessible way.
+## Overview
 
-## 📖 Overview
+Dopamine Study is an interactive web application that explores how reward systems, rapid feedback, and challenge progression influence user engagement. The project uses competitive gameplay and SAT-style cognitive questions to demonstrate principles commonly discussed in cognitive psychology and human-centered design.
 
-Dopamine is often called the "feel-good chemical," but its actual role is much broader. It influences how we learn, pursue goals, form habits, make decisions, and respond to rewards.
+## Features
 
-This project provides an easy-to-understand introduction to these concepts through interactive content and AI-assisted explanations.
+* Competitive challenge-based gameplay
+* SAT-inspired cognitive questions
+* Instant feedback and scoring
+* Reward-driven progression
+* Performance tracking
+* Clean, responsive interface
 
-## ✨ Features
+## Objective
 
-* Interactive learning experience
-* AI-assisted explanations of neuroscience concepts
-* Beginner-friendly interface
-* Topics organized for easy exploration
-* Responsive design
-* Educational content focused on human cognition and behavior
+The project was built to explore how game mechanics can affect motivation, focus, and continued engagement. It draws inspiration from concepts in cognitive psychology such as reward prediction, reinforcement, attention, and habit formation.
 
-## 📚 Topics Covered
-
-* What is Dopamine?
-* The Brain's Reward System
-* Motivation and Goal-Seeking
-* Habit Formation
-* Learning and Reinforcement
-* Decision-Making
-* Attention and Focus
-* Addiction and Dopamine
-* Common Myths About Dopamine
-* Practical Applications in Everyday Life
-
-## 🎯 Purpose
-
-The purpose of this project is to make neuroscience and cognitive psychology easier to understand for students, developers, and anyone interested in how the human brain works.
-
-## 🛠 Technologies Used
+## Technologies
 
 * HTML
 * CSS
 * JavaScript
-* AI-assisted educational content
 
-## 👥 Intended Audience
+## Educational Value
 
-* Students
-* Psychology enthusiasts
-* Developers interested in human-centered AI
-* Anyone curious about human cognition and behavior
+This project serves as an interactive demonstration of how psychological principles can be incorporated into digital experiences. It is intended as an educational and experimental application rather than a clinical or academic research tool.
 
-## 🚀 Future Improvements
+## Disclaimer
 
-* Interactive quizzes
-* Progress tracking
-* Additional neuroscience topics
-* Visual brain diagrams
-* Personalized learning paths
-
-## ⚠️ Disclaimer
-
-This project is intended for educational purposes only. It is not a substitute for professional medical, psychological, or neurological advice. Users should consult qualified professionals for diagnosis or treatment of health-related conditions.
+The psychological concepts referenced in this project are for educational purposes and should not be interpreted as validated scientific findings or formal research conclusions.
