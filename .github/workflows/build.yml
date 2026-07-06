@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - replit-agent
+      - main
   pull_request:
 
 jobs:
