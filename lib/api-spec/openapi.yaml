@@ -1,0 +1,807 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: SAT Prep & English Proficiency API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: users
+    description: User profile and progress
+  - name: questions
+    description: Practice questions
+  - name: sessions
+    description: Practice sessions
+  - name: flashcards
+    description: Flashcard decks and spaced repetition
+  - name: achievements
+    description: Achievements and badges
+  - name: daily
+    description: Daily challenges
+  - name: leaderboard
+    description: Leaderboard
+  - name: stats
+    description: Progress analytics
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+    patch:
+      operationId: updateMe
+      tags: [users]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/init:
+    post:
+      operationId: initUser
+      tags: [users]
+      summary: Initialize or get user (upsert on first load)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInit"
+      responses:
+        "200":
+          description: User initialized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /questions:
+    get:
+      operationId: listQuestions
+      tags: [questions]
+      summary: List questions with optional filters
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Question"
+
+  /questions/{id}/answer:
+    post:
+      operationId: answerQuestion
+      tags: [questions]
+      summary: Submit an answer to a question
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnswerInput"
+      responses:
+        "200":
+          description: Answer result with XP gained
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnswerResult"
+
+  /sessions:
+    post:
+      operationId: startSession
+      tags: [sessions]
+      summary: Start a new practice session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionInput"
+      responses:
+        "201":
+          description: Session created with questions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+    get:
+      operationId: listSessions
+      tags: [sessions]
+      summary: List user's past sessions
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Session"
+
+  /sessions/{id}/complete:
+    post:
+      operationId: completeSession
+      tags: [sessions]
+      summary: Complete a practice session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionCompleteInput"
+      responses:
+        "200":
+          description: Session result with XP, gems, and new achievements
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResult"
+
+  /flashcards/decks:
+    get:
+      operationId: listDecks
+      tags: [flashcards]
+      summary: List all flashcard decks
+      responses:
+        "200":
+          description: List of decks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FlashcardDeck"
+
+  /flashcards/decks/{id}/cards:
+    get:
+      operationId: getDeckCards
+      tags: [flashcards]
+      summary: Get cards in a deck (spaced-repetition sorted)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cards in deck
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Flashcard"
+
+  /flashcards/cards/{id}/review:
+    post:
+      operationId: reviewCard
+      tags: [flashcards]
+      summary: Record a flashcard review (spaced repetition update)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardReviewInput"
+      responses:
+        "200":
+          description: Updated card with next review date
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Flashcard"
+
+  /achievements:
+    get:
+      operationId: listAchievements
+      tags: [achievements]
+      summary: List all achievements
+      responses:
+        "200":
+          description: All achievements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Achievement"
+
+  /achievements/user:
+    get:
+      operationId: getUserAchievements
+      tags: [achievements]
+      summary: Get user's earned achievements
+      responses:
+        "200":
+          description: User's achievements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserAchievement"
+
+  /daily-challenge:
+    get:
+      operationId: getDailyChallenge
+      tags: [daily]
+      summary: Get today's daily challenge
+      responses:
+        "200":
+          description: Today's daily challenge
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyChallenge"
+
+  /daily-challenge/complete:
+    post:
+      operationId: completeDailyChallenge
+      tags: [daily]
+      summary: Complete today's daily challenge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DailyChallengeCompleteInput"
+      responses:
+        "200":
+          description: Challenge result with bonus XP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyChallengeResult"
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [leaderboard]
+      summary: Get weekly leaderboard
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Leaderboard entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
+  /stats/me:
+    get:
+      operationId: getMyStats
+      tags: [stats]
+      summary: Get detailed user stats
+      responses:
+        "200":
+          description: User stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserStats"
+
+  /stats/progress:
+    get:
+      operationId: getProgressHistory
+      tags: [stats]
+      summary: Get progress history (last 30 days)
+      responses:
+        "200":
+          description: Progress history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProgressDay"
+
+  /stats/categories:
+    get:
+      operationId: getCategoryStats
+      tags: [stats]
+      summary: Get performance breakdown by category
+      responses:
+        "200":
+          description: Category breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryStat"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    User:
+      type: object
+      required: [id, username, xp, level, streak, gems, totalAnswered, totalCorrect, createdAt]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        avatar:
+          type: ["string", "null"]
+        xp:
+          type: integer
+        level:
+          type: integer
+        streak:
+          type: integer
+        maxStreak:
+          type: integer
+        gems:
+          type: integer
+        totalAnswered:
+          type: integer
+        totalCorrect:
+          type: integer
+        weeklyXp:
+          type: integer
+        lastActiveAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+        avatar:
+          type: string
+
+    UserInit:
+      type: object
+      required: [username]
+      properties:
+        username:
+          type: string
+        avatar:
+          type: string
+
+    Question:
+      type: object
+      required: [id, category, subcategory, difficulty, questionText, options, correctIndex, explanation, xpReward]
+      properties:
+        id:
+          type: integer
+        category:
+          type: string
+          description: "math | reading | writing | vocabulary | grammar"
+        subcategory:
+          type: string
+        difficulty:
+          type: string
+          description: "easy | medium | hard"
+        questionText:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correctIndex:
+          type: integer
+        explanation:
+          type: string
+        xpReward:
+          type: integer
+        timeLimitSeconds:
+          type: ["integer", "null"]
+
+    AnswerInput:
+      type: object
+      required: [selectedIndex, userId, timeSpentSeconds]
+      properties:
+        selectedIndex:
+          type: integer
+        userId:
+          type: integer
+        timeSpentSeconds:
+          type: integer
+
+    AnswerResult:
+      type: object
+      required: [correct, correctIndex, explanation, xpGained, streakBonus, newXp, newLevel, newStreak]
+      properties:
+        correct:
+          type: boolean
+        correctIndex:
+          type: integer
+        explanation:
+          type: string
+        xpGained:
+          type: integer
+        streakBonus:
+          type: integer
+        newXp:
+          type: integer
+        newLevel:
+          type: integer
+        newStreak:
+          type: integer
+        gemsGained:
+          type: integer
+        newAchievements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+
+    SessionInput:
+      type: object
+      required: [userId, mode]
+      properties:
+        userId:
+          type: integer
+        mode:
+          type: string
+          description: "practice | timed | blitz | adaptive"
+        category:
+          type: string
+        difficulty:
+          type: string
+        questionCount:
+          type: integer
+
+    Session:
+      type: object
+      required: [id, userId, mode, questions, status, startedAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        mode:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Question"
+        status:
+          type: string
+        score:
+          type: ["integer", "null"]
+        totalQuestions:
+          type: integer
+        startedAt:
+          type: string
+        completedAt:
+          type: ["string", "null"]
+
+    SessionCompleteInput:
+      type: object
+      required: [userId, score, totalQuestions, timeSpentSeconds]
+      properties:
+        userId:
+          type: integer
+        score:
+          type: integer
+        totalQuestions:
+          type: integer
+        timeSpentSeconds:
+          type: integer
+
+    SessionResult:
+      type: object
+      required: [score, totalQuestions, xpGained, gemsGained, newXp, newLevel, accuracyPercent]
+      properties:
+        score:
+          type: integer
+        totalQuestions:
+          type: integer
+        xpGained:
+          type: integer
+        gemsGained:
+          type: integer
+        newXp:
+          type: integer
+        newLevel:
+          type: integer
+        accuracyPercent:
+          type: integer
+        newAchievements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+        leveledUp:
+          type: boolean
+
+    FlashcardDeck:
+      type: object
+      required: [id, title, description, category, cardCount, color]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        cardCount:
+          type: integer
+        masteredCount:
+          type: integer
+        color:
+          type: string
+
+    Flashcard:
+      type: object
+      required: [id, deckId, front, back, nextReviewAt, easeFactor, interval, repetitions]
+      properties:
+        id:
+          type: integer
+        deckId:
+          type: integer
+        front:
+          type: string
+        back:
+          type: string
+        example:
+          type: ["string", "null"]
+        nextReviewAt:
+          type: string
+        easeFactor:
+          type: number
+        interval:
+          type: integer
+        repetitions:
+          type: integer
+
+    CardReviewInput:
+      type: object
+      required: [userId, quality]
+      properties:
+        userId:
+          type: integer
+        quality:
+          type: integer
+          description: "0=blackout, 1=wrong, 2=wrong-but-remembered, 3=hard, 4=good, 5=perfect"
+
+    Achievement:
+      type: object
+      required: [id, title, description, icon, xpReward, category, rarity]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        xpReward:
+          type: integer
+        category:
+          type: string
+        rarity:
+          type: string
+          description: "common | rare | epic | legendary"
+
+    UserAchievement:
+      type: object
+      required: [achievement, earnedAt]
+      properties:
+        achievement:
+          $ref: "#/components/schemas/Achievement"
+        earnedAt:
+          type: string
+
+    DailyChallenge:
+      type: object
+      required: [id, date, questions, theme, bonusMultiplier, completed, xpBonus]
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Question"
+        theme:
+          type: string
+        bonusMultiplier:
+          type: number
+        completed:
+          type: boolean
+        xpBonus:
+          type: integer
+
+    DailyChallengeCompleteInput:
+      type: object
+      required: [userId, score, totalQuestions, timeSpentSeconds]
+      properties:
+        userId:
+          type: integer
+        score:
+          type: integer
+        totalQuestions:
+          type: integer
+        timeSpentSeconds:
+          type: integer
+
+    DailyChallengeResult:
+      type: object
+      required: [xpGained, gemsGained, bonusXp, newStreak, newXp]
+      properties:
+        xpGained:
+          type: integer
+        gemsGained:
+          type: integer
+        bonusXp:
+          type: integer
+        newStreak:
+          type: integer
+        newXp:
+          type: integer
+        newAchievements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+
+    LeaderboardEntry:
+      type: object
+      required: [rank, userId, username, weeklyXp, level, streak]
+      properties:
+        rank:
+          type: integer
+        userId:
+          type: integer
+        username:
+          type: string
+        avatar:
+          type: ["string", "null"]
+        weeklyXp:
+          type: integer
+        level:
+          type: integer
+        streak:
+          type: integer
+
+    UserStats:
+      type: object
+      required: [totalXp, totalSessions, totalCorrect, totalAnswered, accuracyPercent, currentStreak, maxStreak, level, rank, gemsEarned, flashcardsMastered]
+      properties:
+        totalXp:
+          type: integer
+        totalSessions:
+          type: integer
+        totalCorrect:
+          type: integer
+        totalAnswered:
+          type: integer
+        accuracyPercent:
+          type: integer
+        currentStreak:
+          type: integer
+        maxStreak:
+          type: integer
+        level:
+          type: integer
+        rank:
+          type: integer
+        gemsEarned:
+          type: integer
+        flashcardsMastered:
+          type: integer
+
+    ProgressDay:
+      type: object
+      required: [date, xpGained, questionsAnswered, accuracy]
+      properties:
+        date:
+          type: string
+        xpGained:
+          type: integer
+        questionsAnswered:
+          type: integer
+        accuracy:
+          type: number
+
+    CategoryStat:
+      type: object
+      required: [category, totalAnswered, totalCorrect, accuracyPercent, avgXpPerQuestion]
+      properties:
+        category:
+          type: string
+        totalAnswered:
+          type: integer
+        totalCorrect:
+          type: integer
+        accuracyPercent:
+          type: integer
+        avgXpPerQuestion:
+          type: number
